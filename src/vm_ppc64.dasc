@@ -496,6 +496,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  srdi CARG2, TMP2, 3
   |  mr CARG1, L
   |  bl extern lj_state_growstack	// (lua_State *L, int n)
+  |  ld TOCREG, SAVE_TOC
   |    ld TMP2, SAVE_NRES
   |   mr RD, SAVE0
   |    sldi TMP2, TMP2, 3
@@ -563,6 +564,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   std PC, SAVE_PC
   |  mr CARG1, L
   |  bl extern lj_state_growstack	// (lua_State *L, int n)
+  |  ld TOCREG, SAVE_TOC
   |  ld BASE, L->base
   |  ld RC, L->top
   |  ld LFUNC:RB, FRAME_FUNC(BASE)
@@ -805,6 +807,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG1, L
   |  std PC, SAVE_PC
   |  bl extern lj_meta_tget		// (lua_State *L, TValue *o, TValue *k)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns TValue * (finished) or NULL (metamethod).
   |  cmpldi CRET1, 0
   |  beq >3
@@ -826,6 +829,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vmeta_tgetr:
   |  bl extern lj_tab_getinth		// (GCtab *t, int32_t key)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns cTValue * or NULL.
   |  cmpldi CRET1, 0
   |  beq >1
@@ -881,6 +885,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG1, L
   |  std PC, SAVE_PC
   |  bl extern lj_meta_tset		// (lua_State *L, TValue *o, TValue *k)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns TValue * (finished) or NULL (metamethod).
   |  cmpldi CRET1, 0
   |   lfdx f0, BASE, RA
@@ -906,6 +911,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  std BASE, L->base
   |  std PC, SAVE_PC
   |  bl extern lj_tab_setinth  // (lua_State *L, GCtab *t, int32_t key)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns TValue *.
   |  stfd f14, 0(CRET1)
   |  b ->cont_nop
@@ -921,6 +927,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   std BASE, L->base
   |  decode_OP1 CARG4, INS
   |  bl extern lj_meta_comp  // (lua_State *L, TValue *o1, *o2, int op)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns 0/1 or TValue * (metamethod).
   |3:
   |  cmpldi CRET1, 1
@@ -968,6 +975,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG1, L
   |   std PC, SAVE_PC
   |  bl extern lj_meta_equal  // (lua_State *L, GCobj *o1, *o2, int ne)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns 0/1 or TValue * (metamethod).
   |  b <3
   |
@@ -979,6 +987,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG1, L
   |   std PC, SAVE_PC
   |  bl extern lj_meta_equal_cd		// (lua_State *L, BCIns op)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns 0/1 or TValue * (metamethod).
   |  b <3
   |.endif
@@ -991,6 +1000,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   srdi CARG3, RD, 3
   |  std PC, SAVE_PC
   |  bl extern lj_meta_istype  // (lua_State *L, BCReg ra, BCReg tp)
+  |  ld TOCREG, SAVE_TOC
   |  b ->cont_nop
   |
   |//-- Arithmetic metamethods ---------------------------------------------
@@ -1029,6 +1039,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   std PC, SAVE_PC
   |  decode_OP1 CARG5, INS		// Caveat: CARG5 overlaps INS.
   |  bl extern lj_meta_arith  // (lua_State *L, TValue *ra,*rb,*rc, BCReg op)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns NULL (finished) or TValue * (metamethod).
   |  cmpldi CRET1, 0
   |  beq ->cont_nop
@@ -1053,6 +1064,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG1, L
   |   std PC, SAVE_PC
   |  bl extern lj_meta_len		// (lua_State *L, TValue *o)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns NULL (retry) or TValue * (metamethod base).
 #if LJ_52
   |  cmpldi CRET1, 0
@@ -1074,6 +1086,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  add CARG3, BASE, RC
   |   mr SAVE0, NARGS8:RC
   |  bl extern lj_meta_call	// (lua_State *L, TValue *func, TValue *top)
+  |  ld TOCREG, SAVE_TOC
   |  ld LFUNC:RB, FRAME_FUNC(BASE)	// Guaranteed to be a function here.
   |   addi NARGS8:RC, SAVE0, 8		// Got one more argument now.
   |  clear_field RB
@@ -1088,6 +1101,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  add CARG3, RA, RC
   |   mr SAVE0, NARGS8:RC
   |  bl extern lj_meta_call	// (lua_State *L, TValue *func, TValue *top)
+  |  ld TOCREG, SAVE_TOC
   |  ld TMP1, FRAME_PC(BASE)
   |   addi NARGS8:RC, SAVE0, 8		// Got one more argument now.
   |   ld LFUNC:RB, FRAME_FUNC(RA)	// Guaranteed to be a function here.
@@ -1103,6 +1117,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   std PC, SAVE_PC
   |  mr SAVE0, INS
   |  bl extern lj_meta_for	// (lua_State *L, TValue *base)
+  |  ld TOCREG, SAVE_TOC
   |.if JIT
   |   decode_OP1 TMP0, SAVE0
   |.endif
@@ -1279,6 +1294,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   la CARG3, 8(BASE)
   |   mr CARG1, L
   |  bl extern lj_tab_get  // (lua_State *L, GCtab *t, cTValue *key)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns cTValue *.
   |  lfd FARG1, 0(CRET1)
   |  ld CARG1, 0(CRET1)
@@ -1314,6 +1330,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG1, L
   |  mr CARG2, BASE
   |  bl extern lj_strfmt_number		// (lua_State *L, cTValue *o)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns GCstr *.
   |  li CARG3, LJ_TSTR
   |  set_oper_type CARG3, CARG3
@@ -1337,6 +1354,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  la CARG3, 8(BASE)
   |   std PC, SAVE_PC
   |  bl extern lj_tab_next	// (lua_State *L, GCtab *t, TValue *key)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns 0 at end of traversal.
   |  cmpldi CRET1, 0
   |   li CARG3, LJ_TNIL
@@ -1405,6 +1423,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  beq ->fff_res
   |   mr CARG2, TMP2
   |  bl extern lj_tab_getinth		// (GCtab *t, int32_t key)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns cTValue * or NULL.
   |  cmpldi CRET1, 0
   |   li RD, (0+1)*8
@@ -1592,12 +1611,14 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG1, L
   |  mr CARG2, L:SAVE0
   |  bl extern lj_ffh_coroutine_wrap_err  // (lua_State *L, lua_State *co)
+  |  ld TOCREG, SAVE_TOC
   |.endif
   |
   |9:  // Handle stack expansion on return from yield.
   |  mr CARG1, L
   |  srdi CARG2, RD, 3
   |  bl extern lj_state_growstack	// (lua_State *L, int n)
+  |  ld TOCREG, SAVE_TOC
   |  li CRET1, 0
   |  b <4
   |.endmacro
@@ -1866,6 +1887,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  std BASE, L->base
   |  std PC, SAVE_PC
   |  bl extern lj_str_new		// (lua_State *L, char *str, size_t l)
+  |  ld TOCREG, SAVE_TOC
   |->fff_resstr:
   |  // Returns GCstr *.
   |  ld BASE, L->base
@@ -1940,7 +1962,9 @@ static void build_subroutines(BuildCtx *ctx)
   |  std PC, SAVE_PC
   |   std TMP0, SBUF:CARG1->p
   |  bl extern lj_buf_putstr_ .. name
+  |  ld TOCREG, SAVE_TOC
   |  bl extern lj_buf_tostr
+  |  ld TOCREG, SAVE_TOC
   |  b ->fff_resstr
   |.endmacro
   |
@@ -2092,6 +2116,7 @@ static void build_subroutines(BuildCtx *ctx)
   |5:  // Grow stack for fallback handler.
   |  li CARG2, LUA_MINSTACK
   |  bl extern lj_state_growstack	// (lua_State *L, int n)
+  |  ld TOCREG, SAVE_TOC
   |  ld BASE, L->base
   |  cmpd TMP0, TMP0			// Set 4*cr0+eq to force retry.
   |  b <1
@@ -2105,6 +2130,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  std TMP0, L->top
   |  mr CARG1, L
   |  bl extern lj_gc_step		// (lua_State *L)
+  |  ld TOCREG, SAVE_TOC
   |   ld BASE, L->base
   |  mtlr SAVE0
   |    ld TMP0, L->top
@@ -2150,6 +2176,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   std BASE, L->base
   |  // SAVE_PC must hold the _previous_ PC. The callee updates it with PC.
   |  bl extern lj_dispatch_ins		// (lua_State *L, const BCIns *pc)
+  |  ld TOCREG, SAVE_TOC
   |3:
   |  ld BASE, L->base
   |4:  // Re-dispatch to static ins.
@@ -2190,6 +2217,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  sub RA, RA, BASE
   |   std TMP0, L->top
   |  bl extern lj_dispatch_call		// (lua_State *L, const BCIns *pc)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns ASMFunction.
   |  ld BASE, L->base
   |   ld TMP0, L->top
@@ -2212,6 +2240,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr CARG2, PC
   |   std BASE, L->base
   |  bl extern lj_dispatch_profile	// (lua_State *L, const BCIns *pc)
+  |  ld TOCREG, SAVE_TOC
   |  // HOOK_PROFILE is off again, so re-dispatch to dynamic instruction.
   |  ld BASE, L->base
   |  subi PC, PC, 4
@@ -2317,6 +2346,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  std CTSTATE, SAVE_PC		// Any value outside of bytecode is ok.
   |   mr CARG2, sp
   |  bl extern lj_ccallback_enter	// (CTState *cts, void *cf)
+  |  ld TOCREG, SAVE_TOC
   |  // Returns lua_State *.
   |  ld BASE, L:CRET1->base
   |     li TISNUM, LJ_TISNUM		// Setup type comparison constants.
@@ -2828,6 +2858,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
 #endif
     |->BC_LEN_Z:
     |  bl extern lj_tab_len		// (GCtab *t)
+    |  ld TOCREG, SAVE_TOC
     |  // Returns uint32_t (but less than 2^31).
     |  b <1
 #if LJ_52
@@ -3038,6 +3069,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  mr CARG1, L
     |  srdi CARG3, CARG3, 3
     |  bl extern lj_meta_cat		// (lua_State *L, TValue *top, int left)
+    |  ld TOCREG, SAVE_TOC
     |  // Returns NULL (finished) or TValue * (metamethod).
     |  cmpldi CRET1, 0
     |   ld BASE, L->base
@@ -3156,6 +3188,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  // Crossed a write barrier. Move the barrier forward.
     |  beq <1
     |  bl extern lj_gc_barrieruv	// (global_State *g, TValue *tv)
+    |  ld TOCREG, SAVE_TOC
     |  b <1
     break;
   case BC_USETS:
@@ -3187,6 +3220,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  // Crossed a write barrier. Move the barrier forward.
     |  beq <1
     |  bl extern lj_gc_barrieruv	// (global_State *g, TValue *tv)
+    |  ld TOCREG, SAVE_TOC
     |  b <1
     break;
   case BC_USETN:
@@ -3226,6 +3260,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  beq >1
     |   add CARG2, BASE, RA
     |  bl extern lj_func_closeuv	// (lua_State *L, TValue *level)
+    |  ld TOCREG, SAVE_TOC
     |  ld BASE, L->base
     |1:
     |  ins_next
@@ -3242,6 +3277,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  clear_field CARG3
     |  // (lua_State *L, GCproto *pt, GCfuncL *parent)
     |  bl extern lj_func_newL_gc
+    |  ld TOCREG, SAVE_TOC
     |  // Returns GCfuncL *.
     |  ld BASE, L->base
     |   li TMP0, LJ_TFUNC
@@ -3270,11 +3306,13 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
       |  cmpdi CARG2, 0x7ff; beq >3
       |2:
       |  bl extern lj_tab_new	// (lua_State *L, int32_t asize, uint32_t hbits)
+      |  ld TOCREG, SAVE_TOC
       |  // Returns Table *.
     } else {
       |  subfic TMP1, RD, -8
       |  ldx CARG2, KBASE, TMP1		// KBASE-8-tab_const*8
       |  bl extern lj_tab_dup	// (lua_State *L, Table *kt)
+      |  ld TOCREG, SAVE_TOC
       |  // Returns Table *.
     }
     |  ld BASE, L->base
@@ -3291,6 +3329,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |5:
     |  mr SAVE0, RD
     |  bl extern lj_gc_step_fixtop	// (lua_State *L)
+    |  ld TOCREG, SAVE_TOC
     |  mr RD, SAVE0
     |  mr CARG1, L
     |  b <1
@@ -3552,6 +3591,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   mr CARG2, TAB:RB
     |  std TMP0, 0(CARG3)
     |  bl extern lj_tab_newkey		// (lua_State *L, GCtab *t, TValue *k)
+    |  ld TOCREG, SAVE_TOC
     |  // Returns TValue *.
     |  ld BASE, L->base
     |  stfd f14, 0(CRET1)
@@ -3662,6 +3702,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   std PC, SAVE_PC
     |  mr SAVE0, RD
     |  bl extern lj_tab_reasize		// (lua_State *L, GCtab *t, int nasize)
+    |  ld TOCREG, SAVE_TOC
     |  // Must not reallocate the stack.
     |  mr RD, SAVE0
     |  b <1
@@ -3927,6 +3968,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   std PC, SAVE_PC
     |  srdi CARG2, TMP1, 3
     |  bl extern lj_state_growstack	// (lua_State *L, int n)
+    |  ld TOCREG, SAVE_TOC
     |  ld BASE, L->base
     |  add RA, BASE, RA
     |  add RC, BASE, SAVE0
