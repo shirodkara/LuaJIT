@@ -17,6 +17,9 @@
 
 /* extra error code for `luaL_load' */
 #define LUA_ERRFILE     (LUA_ERRERR+1)
+#define luaL_getn(L,i)          ((int)lua_objlen(L, i))
+#define luaL_setn(L,i,j)        ((void)0)  /* no op! */
+
 
 typedef struct luaL_Reg {
   const char *name;
